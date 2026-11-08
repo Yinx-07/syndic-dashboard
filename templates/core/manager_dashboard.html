@@ -1,0 +1,636 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord Syndic - SyndicMaroc{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-speedometer2 text-primary me-2"></i>Tableau de Bord du Syndic
+        </h2>
+        <p class="text-muted mb-0 small">
+            Bienvenue, <strong>{{ user.get_full_name|default:user.username }}</strong>. Vue d'ensemble & gestion de la copropriété.
+        </p>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto">
+        <a href="{% url 'residents_list' %}" class="btn btn-outline-primary btn-sm fw-bold flex-grow-1 flex-md-grow-0 text-center">
+            <i class="bi bi-people-fill me-1"></i> Gérer Copropriétaires
+        </a>
+        <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm flex-grow-1 flex-md-grow-0 text-center">
+            <i class="bi bi-shield-check me-1"></i> Périmètre: {{ total_buildings }} Immeuble(s)
+        </span>
+    </div>
+</div>
+
+<!-- Security Isolation Notice -->
+<div class="alert alert-primary d-flex align-items-center mb-4 border-0 shadow-sm p-3" role="alert">
+    <i class="bi bi-info-circle-fill fs-4 me-3 flex-shrink-0"></i>
+    <div class="small">
+        <strong>Système d'isolation des accès activé :</strong> Vous avez uniquement accès aux immeubles et appartements dont vous êtes le syndic/gestionnaire officiel désigné.
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold d-block">Immeubles Gérés</span>
+                    <h3 class="fw-bold my-1 text-primary">{{ total_buildings }}</h3>
+                    <span class="badge bg-teal-light">Périmètre dédié</span>
+                </div>
+                <div class="stat-icon bg-teal-light flex-shrink-0">
+                    <i class="bi bi-building"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold d-block">Cotisations Sept. 2026</span>
+                    <h3 class="fw-bold my-1 text-success">{{ paid_count }} <small class="fs-6 text-muted">/ {{ total_apartments }} Payés</small></h3>
+                    <span class="badge bg-emerald-light">{{ unpaid_count }} Non payé(s)</span>
+                </div>
+                <div class="stat-icon bg-emerald-light flex-shrink-0">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold d-block">Solde d'Ouverture</span>
+                    <h3 class="fw-bold my-1 mad-currency">
+                        {{ total_opening_balance|floatformat:2 }} <small class="fs-6">MAD</small>
+                    </h3>
+                    <span class="badge bg-teal-light">Report à nouveau</span>
+                </div>
+                <div class="stat-icon bg-teal-light flex-shrink-0">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <div>
+                    <span class="text-muted small text-uppercase fw-semibold d-block">Maintenance</span>
+                    <h3 class="fw-bold my-1 text-warning">{{ pending_tickets_count }}</h3>
+                    <span class="badge bg-amber-light">{{ pending_tickets_count }} Attente / {{ in_progress_tickets_count }} Cours</span>
+                </div>
+                <div class="stat-icon bg-amber-light flex-shrink-0">
+                    <i class="bi bi-tools"></i>
+                </div>
+            </div>
+        </div>
+</div>
+
+<!-- Analytics & Financial Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Donut Chart: Taux de Recouvrement du mois en cours -->
+    <div class="col-lg-5">
+        <div class="card card-custom h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0 fs-6">
+                    <i class="bi bi-pie-chart-fill text-success me-2"></i>Taux de Recouvrement (Mois en cours)
+                </h5>
+                <span class="badge bg-light text-dark border"><i class="bi bi-calendar-check me-1"></i>Sept. 2026</span>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center p-3">
+                <div style="width: 100%; max-width: 320px; height: 230px;">
+                    <canvas id="recouvrementChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Histogramme / Line Chart: Évolution de la Trésorerie sur 12 Mois -->
+    <div class="col-lg-7">
+        <div class="card card-custom h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0 fs-6">
+                    <i class="bi bi-graph-up-arrow text-primary me-2"></i>Évolution de la Trésorerie & Encaissements Mensuels
+                </h5>
+                <span class="badge bg-primary"><i class="bi bi-cash-stack me-1"></i>Rentrées en MAD</span>
+            </div>
+            <div class="card-body p-3">
+                <div style="width: 100%; height: 230px;">
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row g-4">
+    <!-- Left Column: Buildings & Apartments List with Payment Status and Balance Editing -->
+    <div class="col-lg-8">
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-buildings text-primary me-2"></i>Mes Immeubles, Soldes & Cotisations
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if buildings %}
+                    <div class="accordion accordion-flush" id="buildingsAccordion">
+                        {% for building in buildings %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ building.id }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ building.id }}">
+                                    <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                        <div>
+                                            <strong class="fs-6 text-dark me-2">{{ building.name }}</strong>
+                                            <span class="badge bg-secondary me-2"><i class="bi bi-geo-alt-fill me-1"></i>{{ building.city }}</span>
+                                            <small class="text-muted d-block d-sm-inline mt-1 mt-sm-0">{{ building.address }}</small>
+                                        </div>
+                                        <span class="badge bg-light text-dark border">
+                                            {{ building.apartments.count }} Appt(s)
+                                        </span>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ building.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#buildingsAccordion">
+                                <div class="accordion-body bg-light p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="fw-bold text-muted mb-0">Registre des Lotissements & Modification des Soldes :</h6>
+                                        <a href="{% url 'building_detail' building.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i> Fiche Immeuble
+                                        </a>
+                                    </div>
+
+                                    <div class="table-responsive bg-white rounded shadow-sm border">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="table-light small text-uppercase">
+                                                <tr>
+                                                    <th>N° Appt</th>
+                                                    <th>Copropriétaire</th>
+                                                    <th>Solde d'Ouverture (MAD)</th>
+                                                    <th>Cotisation Sept. 2026</th>
+                                                    <th class="text-end">Statut Cotisation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for appt in building.apartments.all %}
+                                                <tr>
+                                                    <td><strong class="text-primary">Appt {{ appt.number }}</strong></td>
+                                                    <td>
+                                                        {% if appt.owner %}
+                                                            <i class="bi bi-person-circle text-secondary me-1"></i>
+                                                            {{ appt.owner.get_full_name|default:appt.owner.username }}
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Vacant</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            {% if appt.opening_balance > 0 %}
+                                                                <span class="fw-bold text-success">+{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                                                            {% elif appt.opening_balance < 0 %}
+                                                                <span class="fw-bold text-danger">{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                                                            {% else %}
+                                                                <span class="fw-bold text-muted">0.00 MAD</span>
+                                                            {% endif %}
+                                                            <button type="button" class="btn btn-sm btn-light border text-primary py-0 px-2 rounded" data-bs-toggle="modal" data-bs-target="#editBalanceModal{{ appt.id }}" title="Modifier le solde d'ouverture">
+                                                                <i class="bi bi-pencil-fill small"></i> Edit
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Modal modification solde d'ouverture -->
+                                                        <div class="modal fade" id="editBalanceModal{{ appt.id }}" tabindex="-1" aria-hidden="true">
+                                                            <div class="modal-dialog modal-dialog-centered">
+                                                                <div class="modal-content">
+                                                                    <form action="{% url 'update_opening_balance' appt.id %}" method="post">
+                                                                        {% csrf_token %}
+                                                                        <div class="modal-header">
+                                                                            <h5 class="modal-title fw-bold">Modifier Solde d'Ouverture - Appt {{ appt.number }}</h5>
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        </div>
+                                                                        <div class="modal-body text-start">
+                                                                            <p class="small text-muted mb-3">Saisissez le nouveau solde financier d'ouverture (report à nouveau) en <strong>Dirhams Marocains (MAD)</strong>.</p>
+                                                                            <div class="mb-3">
+                                                                                <label for="balanceInput{{ appt.id }}" class="form-label font-weight-bold">Solde d'Ouverture (MAD) :</label>
+                                                                                <div class="input-group">
+                                                                                    <input type="number" step="0.01" name="opening_balance" id="balanceInput{{ appt.id }}" class="form-control" value="{{ appt.opening_balance }}" required>
+                                                                                    <span class="input-group-text">MAD</span>
+                                                                                </div>
+                                                                                <small class="text-muted">Mettre une valeur positive (+) pour un crédit ou négative (-) pour une dette.</small>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                                            <button type="submit" class="btn btn-primary fw-bold">Enregistrer la modification</button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        {% with appt.monthly_payments.first as payment %}
+                                                            {% if payment %}
+                                                                {% if payment.status == 'PAID' %}
+                                                                    <div class="d-flex align-items-center gap-2">
+                                                                        <span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Payé</span>
+                                                                        <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" title="Imprimer le reçu de paiement">
+                                                                            <i class="bi bi-printer-fill me-1"></i>Reçu PDF
+                                                                        </a>
+                                                                    </div>
+                                                                {% elif payment.status == 'PARTIAL' %}
+                                                                    <div class="d-flex align-items-center gap-2">
+                                                                        <span class="badge bg-warning text-dark px-2 py-1" title="Acompte versé: {{ payment.actual_paid_amount }} MAD / Reste: {{ payment.remaining_amount }} MAD">
+                                                                            <i class="bi bi-clock-fill me-1"></i>Partiel ({{ payment.actual_paid_amount|floatformat:0 }}/{{ payment.amount|floatformat:0 }} MAD)
+                                                                        </span>
+                                                                        <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 fw-bold" title="Imprimer le reçu d'acompte (avec solde restant due)">
+                                                                            <i class="bi bi-printer-fill me-1"></i>Reçu Acompte
+                                                                        </a>
+                                                                    </div>
+                                                                {% else %}
+                                                                    <span class="badge bg-danger px-2 py-1"><i class="bi bi-x-circle-fill me-1"></i>Non Payé</span>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <span class="badge bg-secondary">-</span>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </td>
+                                                    <td class="text-end">
+                                                        {% with appt.monthly_payments.first as payment %}
+                                                            {% if payment %}
+                                                            <form action="{% url 'update_payment_status' payment.id %}" method="post" class="d-flex gap-1 justify-content-end align-items-center">
+                                                                {% csrf_token %}
+                                                                <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="togglePaidInput(this, '{{ payment.id }}')">
+                                                                    <option value="PAID" {% if payment.status == 'PAID' %}selected{% endif %}>Payé (Total)</option>
+                                                                    <option value="UNPAID" {% if payment.status == 'UNPAID' %}selected{% endif %}>Non payé</option>
+                                                                    <option value="PARTIAL" {% if payment.status == 'PARTIAL' %}selected{% endif %}>Partiel (Acompte)</option>
+                                                                </select>
+                                                                <input type="number" step="0.01" name="paid_amount" id="paid_input_{{ payment.id }}" class="form-control form-control-sm {% if payment.status != 'PARTIAL' %}d-none{% endif %}" style="width: 85px;" value="{{ payment.actual_paid_amount }}" placeholder="Versé">
+                                                                <button type="submit" class="btn btn-sm btn-primary" title="Enregistrer le statut">
+                                                                    <i class="bi bi-check"></i>
+                                                                </button>
+                                                            </form>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-3 text-muted">Aucun appartement enregistré pour cet immeuble.</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-exclamation-circle fs-2 d-block mb-2"></i>
+                        Aucun immeuble ne vous est actuellement attribué.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Expenses Management & Chart.js Visual Card -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-pie-chart-fill text-primary me-2"></i>Répartition des Dépenses de l'Immeuble (MAD)
+                </h5>
+                <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                    <i class="bi bi-plus-circle me-1"></i> Saisir une Dépense
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-5 mb-3 mb-md-0 text-center">
+                        <div style="max-width: 260px; margin: 0 auto;">
+                            <canvas id="managerExpenseChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-muted mb-0">Dernières Dépenses Enregistrées :</h6>
+                            <span class="badge bg-light text-dark border">Total: {{ total_expenses|floatformat:2 }} MAD</span>
+                        </div>
+                        <div class="table-responsive bg-light rounded border" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-hover mb-0 align-middle">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Libellé</th>
+                                        <th>Catégorie</th>
+                                        <th class="text-end">Montant</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for exp in expenses %}
+                                    <tr>
+                                        <td class="small">{{ exp.expense_date|date:"d/m/Y" }}</td>
+                                        <td class="fw-bold small">{{ exp.title }}</td>
+                                        <td><span class="badge bg-secondary small">{{ exp.get_category_display }}</span></td>
+                                        <td class="text-end fw-bold text-danger small">{{ exp.amount|floatformat:2 }} MAD</td>
+                                        <td class="text-center">
+                                            <form action="{% url 'delete_expense' exp.id %}" method="post" class="d-inline" onsubmit="return confirm('Supprimer cette dépense ?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-3 text-muted small">Aucune dépense enregistrée.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Saisie de Dépense -->
+        <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form action="{% url 'add_expense' %}" method="post">
+                        {% csrf_token %}
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Saisir une Nouvelle Dépense</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="exp_building" class="form-label font-weight-bold">Immeuble concerné * :</label>
+                                <select name="building_id" id="exp_building" class="form-select" required>
+                                    {% for b in buildings %}
+                                        <option value="{{ b.id }}">{{ b.name }} ({{ b.city }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="exp_title" class="form-label font-weight-bold">Libellé / Titre de la dépense * :</label>
+                                <input type="text" name="title" id="exp_title" class="form-control" placeholder="ex: Facture Électricité Hall, Réparation Pompe..." required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="exp_category" class="form-label font-weight-bold">Catégorie * :</label>
+                                <select name="category" id="exp_category" class="form-select" required>
+                                    {% for code, label in expense_categories %}
+                                        <option value="{{ code }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label for="exp_amount" class="form-label font-weight-bold">Montant (MAD) * :</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" name="amount" id="exp_amount" class="form-control" placeholder="1500.00" required>
+                                        <span class="input-group-text">MAD</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label for="exp_date" class="form-label font-weight-bold">Date de la dépense * :</label>
+                                    <input type="date" name="expense_date" id="exp_date" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-check-circle me-1"></i>Enregistrer la Dépense</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Announcement Publication Form Card -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-megaphone-fill text-primary me-2"></i>Publier un Message aux Résidents
+                </h5>
+            </div>
+            <div class="card-body p-3">
+                <form action="{% url 'create_announcement' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label for="building_id_anc" class="form-label font-weight-bold small">Immeuble destinataire :</label>
+                        <select name="building_id" id="building_id_anc" class="form-select form-select-sm" required>
+                            {% for b in buildings %}
+                                <option value="{{ b.id }}">{{ b.name }} ({{ b.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="anc_title" class="form-label font-weight-bold small">Titre du message :</label>
+                        <input type="text" name="title" id="anc_title" class="form-control form-control-sm" placeholder="ex: Assemblée Générale / Traitement Nuisibles" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="anc_content" class="form-label font-weight-bold small">Contenu de l'annonce :</label>
+                        <textarea name="content" id="anc_content" rows="3" class="form-control form-control-sm" placeholder="Rédigez votre communication officielle..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">
+                        <i class="bi bi-send-fill me-1"></i>Publier le Message
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card card-custom">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-wrench-adjustable text-warning me-2"></i>Demandes de Maintenance
+                </h5>
+                <span class="badge bg-warning text-dark">{{ tickets.count }}</span>
+            </div>
+            <div class="card-body p-3">
+                {% if tickets %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for ticket in tickets %}
+                        <div class="p-3 bg-light rounded border">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong class="text-dark small">{{ ticket.title }}</strong>
+                                {% if ticket.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% elif ticket.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-info text-dark">En cours</span>
+                                {% elif ticket.status == 'RESOLVED' %}
+                                    <span class="badge bg-success">Résolu</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejeté</span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="text-muted small mb-2">{{ ticket.description|truncatewords:15 }}</p>
+                            
+                            <div class="small text-secondary mb-2">
+                                <i class="bi bi-geo-alt me-1"></i>{{ ticket.building.name }}
+                                {% if ticket.apartment %} - Appt {{ ticket.apartment.number }}{% endif %}
+                            </div>
+                            
+                            <form action="{% url 'update_ticket_status' ticket.id %}" method="post" class="d-flex gap-2 align-items-center mt-2">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="PENDING" {% if ticket.status == 'PENDING' %}selected{% endif %}>En attente</option>
+                                    <option value="IN_PROGRESS" {% if ticket.status == 'IN_PROGRESS' %}selected{% endif %}>En cours</option>
+                                    <option value="RESOLVED" {% if ticket.status == 'RESOLVED' %}selected{% endif %}>Résolu</option>
+                                    <option value="REJECTED" {% if ticket.status == 'REJECTED' %}selected{% endif %}>Rejeté</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+                        Aucune demande de maintenance active.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Chart Dépenses Immeuble
+    const ctxExp = document.getElementById('managerExpenseChart');
+    if (ctxExp) {
+        new Chart(ctxExp, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    data: {{ chart_data|safe }},
+                    backgroundColor: [
+                        '#0f4c81', '#d97706', '#059669', '#7c3aed',
+                        '#dc2626', '#2563eb', '#64748b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                }
+            }
+        });
+    }
+
+    // 2. Chart Taux de Recouvrement (Mois en cours)
+    const ctxRec = document.getElementById('recouvrementChart');
+    if (ctxRec) {
+        new Chart(ctxRec, {
+            type: 'doughnut',
+            data: {
+                labels: {{ recouvrement_labels|safe }},
+                datasets: [{
+                    data: {{ recouvrement_data|safe }},
+                    backgroundColor: {{ recouvrement_colors|safe }},
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return label + ': ' + value + ' Appt(s) (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Chart Évolution Trésorerie & Encaissements 12 Mois
+    const ctxCash = document.getElementById('cashflowChart');
+    if (ctxCash) {
+        new Chart(ctxCash, {
+            type: 'bar',
+            data: {
+                labels: {{ cashflow_labels|safe }},
+                datasets: [{
+                    label: 'Encaissements (MAD)',
+                    data: {{ cashflow_data|safe }},
+                    backgroundColor: 'rgba(15, 76, 129, 0.85)',
+                    borderColor: '#0f4c81',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('fr-FR') + ' DH'; }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Encaissement : ' + context.parsed.y.toLocaleString('fr-FR') + ' MAD';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+function togglePaidInput(selectElem, paymentId) {
+    const input = document.getElementById('paid_input_' + paymentId);
+    if (input) {
+        if (selectElem.value === 'PARTIAL') {
+            input.classList.remove('d-none');
+            input.focus();
+        } else {
+            input.classList.add('d-none');
+        }
+    }
+}
+</script>
+{% endblock %}

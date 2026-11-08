@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Espace Copropriétaire - SyndicMaroc{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-house-door-fill text-success me-2"></i>Mon Espace Copropriétaire
+        </h2>
+        <p class="text-muted mb-0 small">
+            Bienvenue, <strong>{{ user.get_full_name|default:user.username }}</strong> (CIN: {{ user.cin|default:'-' }}).
+        </p>
+    </div>
+    <div>
+        <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm small">
+            <i class="bi bi-shield-lock me-1"></i> Données Résidentielles Privées
+        </span>
+    </div>
+</div>
+
+<!-- Security Isolation Notice -->
+<div class="alert alert-success d-flex align-items-center mb-4 border-0 shadow-sm p-3" role="alert">
+    <i class="bi bi-shield-check fs-4 me-3 text-success flex-shrink-0"></i>
+    <div class="small">
+        <strong>Accès Sécurisé Résident :</strong> Vous consultez exclusivement les informations financières, cotisations mensuelles et demandes de maintenance rattachées à votre appartement.
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Apartment Information & Financial Balance -->
+    <div class="col-lg-7">
+        <!-- Personal Apartments List -->
+        {% for appt in apartments %}
+        <div class="card card-custom mb-4 border-start border-4 border-success">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-building text-primary me-2"></i>{{ appt.building.name }} - Appt {{ appt.number }}
+                </h5>
+                <span class="badge bg-light text-dark border">Étage {{ appt.floor }}</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small text-uppercase fw-semibold d-block">Localisation</span>
+                            <strong class="text-dark d-block mb-1">{{ appt.building.address }}</strong>
+                            <span class="badge bg-secondary"><i class="bi bi-geo-alt me-1"></i>{{ appt.building.city }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 bg-light rounded">
+                            <span class="text-muted small text-uppercase fw-semibold d-block">Tantièmes de Copropriété</span>
+                            <h4 class="fw-bold text-primary mb-0">{{ appt.tantiemes }} <small class="fs-6 text-muted">/ 1000</small></h4>
+                            <small class="text-muted">Quota de répartition des charges</small>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Monthly Payment Status Banner -->
+                <div class="p-3 bg-light rounded mb-3 border">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span class="text-muted small text-uppercase fw-semibold d-block">Statut Cotisation Mensuelle</span>
+                            <strong class="text-dark fs-6">Cotisation Septembre 2026 ({{ appt.monthly_payments.first.amount|default:'350' }} MAD)</strong>
+                        </div>
+                        <div>
+                            {% with appt.monthly_payments.first as payment %}
+                                {% if payment %}
+                                    {% if payment.status == 'PAID' %}
+                                        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i>Cotisation Reglée (Payée)</span>
+                                    {% elif payment.status == 'PARTIAL' %}
+                                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill"><i class="bi bi-clock-fill me-1"></i>Paiement Partiel</span>
+                                    {% else %}
+                                        <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill"><i class="bi bi-exclamation-triangle-fill me-1"></i>Cotisation Non Reglée</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Status Card -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Solde d'Ouverture Personnel</span>
+                        {% if appt.opening_balance > 0 %}
+                            <h3 class="fw-bold text-success mb-0">+{{ appt.opening_balance|floatformat:2 }} <small class="fs-6">MAD</small></h3>
+                            <span class="badge bg-success mt-1"><i class="bi bi-check-circle me-1"></i>Compte Créditeur (En avance)</span>
+                        {% elif appt.opening_balance < 0 %}
+                            <h3 class="fw-bold text-danger mb-0">{{ appt.opening_balance|floatformat:2 }} <small class="fs-6">MAD</small></h3>
+                            <span class="badge bg-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>Solde Débiteur À régulariser</span>
+                        {% else %}
+                            <h3 class="fw-bold text-muted mb-0">0.00 <small class="fs-6">MAD</small></h3>
+                            <span class="badge bg-secondary mt-1">Compte à jour</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        {% with appt.monthly_payments.first as payment %}
+                            {% if payment and payment.status == 'PAID' %}
+                                <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill fw-bold">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> Imprimer Reçu (PDF)
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill" disabled title="Cotisation non encore réglée">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i> Reçu Indisponible
+                                </button>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card card-custom p-4 text-center text-muted mb-4">
+            <i class="bi bi-house-x fs-2 d-block mb-2"></i>
+            Aucun appartement n'est actuellement rattaché à votre compte.
+        </div>
+        {% endfor %}
+
+        <!-- Transparence Financière: Graphique des Dépenses de la Résidence -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-pie-chart-fill text-primary me-2"></i>Transparence : Dépenses de l'Immeuble (MAD)
+                </h5>
+                <span class="badge bg-light text-dark border">Total: {{ total_building_expenses|floatformat:2 }} MAD</span>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-5 text-center mb-3 mb-md-0">
+                        <div style="max-width: 220px; height: 180px; margin: 0 auto;">
+                            <canvas id="residentExpenseChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <h6 class="fw-bold text-muted mb-2">Postes de dépenses gérés par le Syndic :</h6>
+                        <ul class="list-group list-group-flush small border rounded">
+                            {% for exp in building_expenses %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <strong class="text-dark">{{ exp.title }}</strong>
+                                    <span class="badge bg-secondary ms-1">{{ exp.get_category_display }}</span>
+                                </div>
+                                <span class="fw-bold text-danger">{{ exp.amount|floatformat:2 }} MAD</span>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-muted text-center py-3">Aucune dépense enregistrée.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transparence Financière : Recouvrement & Cashflow Mensuel -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-graph-up-circle-fill text-success me-2"></i>Santé Financière & Recouvrement de la Résidence
+                </h5>
+                <span class="badge bg-light text-dark border">Indicateurs Globaux</span>
+            </div>
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <div class="col-md-5 text-center">
+                        <h6 class="fw-bold text-muted small mb-2">Taux de Recouvrement (Sept. 2026)</h6>
+                        <div style="max-width: 220px; height: 170px; margin: 0 auto;">
+                            <canvas id="residentRecouvrementChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7 text-center">
+                        <h6 class="fw-bold text-muted small mb-2">Évolution des Encaissements Mensuels (MAD)</h6>
+                        <div style="width: 100%; height: 170px;">
+                            <canvas id="residentCashflowChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shared Building Reports & Announcements -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-megaphone-fill text-warning me-2"></i>Annonces et Communications de l'Immeuble
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if announcements %}
+                    <div class="list-group list-group-flush">
+                        {% for anc in announcements %}
+                        <div class="list-group-item px-0 py-3">
+                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-bell-fill text-primary me-2"></i>{{ anc.title }}</h6>
+                                <small class="text-muted">{{ anc.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <p class="mb-2 text-muted small">{{ anc.content }}</p>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-person-badge me-1"></i>Publié par {{ anc.author.get_full_name|default:anc.author.username }} (Syndic)
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-left-dots fs-3 text-secondary d-block mb-2"></i>
+                        Aucune nouvelle annonce publiée par le syndic pour le moment.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Maintenance Ticket Creation & History -->
+    <div class="col-lg-5">
+        <!-- Ticket Submission Form -->
+        <div class="card card-custom mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-plus-circle-fill text-success me-2"></i>Signaler un Problème / Maintenance
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="{% url 'create_maintenance_ticket' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="apartment_id" class="form-label font-weight-bold">Concerne l'appartement :</label>
+                        <select name="apartment_id" id="apartment_id" class="form-select" required>
+                            {% for appt in apartments %}
+                                <option value="{{ appt.id }}">{{ appt.building.name }} - Appt {{ appt.number }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ticket_title" class="form-label font-weight-bold">Sujet de la demande :</label>
+                        <input type="text" name="title" id="ticket_title" class="form-control" placeholder="ex: Fuite d'eau, Panne d'éclairage..." required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ticket_description" class="form-label font-weight-bold">Description détaillée :</label>
+                        <textarea name="description" id="ticket_description" rows="3" class="form-control" placeholder="Précisez l'emplacement et l'urgence du problème..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2">
+                        <i class="bi bi-send me-2"></i>Envoyer au Syndic
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Submitted Tickets History -->
+        <div class="card card-custom">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-clock-history text-secondary me-2"></i>Historique de mes Signalements
+                </h5>
+                <span class="badge bg-secondary">{{ tickets.count }}</span>
+            </div>
+            <div class="card-body p-3">
+                {% if tickets %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for ticket in tickets %}
+                        <div class="p-3 bg-light rounded border">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong class="text-dark small">{{ ticket.title }}</strong>
+                                {% if ticket.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% elif ticket.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-info text-dark">En cours</span>
+                                {% elif ticket.status == 'RESOLVED' %}
+                                    <span class="badge bg-success">Résolu</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejeté</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-muted small mb-2">{{ ticket.description }}</p>
+                            <small class="text-secondary">
+                                <i class="bi bi-calendar3 me-1"></i>Créé le {{ ticket.created_at|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-left-check fs-3 text-muted d-block mb-2"></i>
+                        Vous n'avez soumis aucune demande pour le moment.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Dépenses de la Résidence
+    const ctxExp = document.getElementById('residentExpenseChart');
+    if (ctxExp) {
+        new Chart(ctxExp, {
+            type: 'doughnut',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [{
+                    data: {{ chart_data|safe }},
+                    backgroundColor: [
+                        '#0f4c81', '#d97706', '#059669', '#7c3aed',
+                        '#dc2626', '#2563eb', '#64748b'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // 2. Taux de Recouvrement
+    const ctxRec = document.getElementById('residentRecouvrementChart');
+    if (ctxRec) {
+        new Chart(ctxRec, {
+            type: 'doughnut',
+            data: {
+                labels: {{ recouvrement_labels|safe }},
+                datasets: [{
+                    data: {{ recouvrement_data|safe }},
+                    backgroundColor: {{ recouvrement_colors|safe }},
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed || 0;
+                                let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return label + ': ' + value + ' Appt(s) (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Encaissements Mensuels sur 12 mois
+    const ctxCash = document.getElementById('residentCashflowChart');
+    if (ctxCash) {
+        new Chart(ctxCash, {
+            type: 'bar',
+            data: {
+                labels: {{ cashflow_labels|safe }},
+                datasets: [{
+                    label: 'Encaissements (MAD)',
+                    data: {{ cashflow_data|safe }},
+                    backgroundColor: 'rgba(5, 150, 105, 0.85)',
+                    borderColor: '#059669',
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return value.toLocaleString('fr-FR') + ' DH'; }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Encaissement : ' + context.parsed.y.toLocaleString('fr-FR') + ' MAD';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

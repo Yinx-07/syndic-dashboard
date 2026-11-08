@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Copropriétaires par Immeuble - SyndicMaroc{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-buildings-fill text-primary me-2"></i>Copropriétaires Triés par Immeuble
+        </h2>
+        <p class="text-muted mb-0 small">
+            Consultez, ajoutez ou modifiez les résidents regroupés par résidence et par appartement.
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'manager_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Tableau de bord
+        </a>
+    </div>
+</div>
+
+{% for building in buildings %}
+<div class="card card-custom shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="bi bi-building text-primary me-2"></i>{{ building.name }}
+            </h5>
+            <small class="text-muted">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ building.address }}, {{ building.city }}
+            </small>
+        </div>
+        <div>
+            <span class="badge bg-primary fs-6 px-3 py-1 rounded-pill">
+                Syndic: {{ building.manager.get_full_name|default:building.manager.username|default:"Non assigné" }}
+            </span>
+            <span class="badge bg-light text-dark border ms-1">{{ building.apartments.count }} Appt(s)</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase">
+                    <tr>
+                        <th>N° Lot / Appt</th>
+                        <th>Copropriétaire (Nom & Prénom)</th>
+                        <th>Identifiant</th>
+                        <th>N° CIN</th>
+                        <th>Téléphone & Email</th>
+                        <th>Solde d'Ouverture</th>
+                        <th class="text-end" style="min-width: 210px;">Action / Attribution</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appt in building.apartments.all %}
+                    <tr>
+                        <td>
+                            <strong class="text-primary fs-6">Appt {{ appt.number }}</strong>
+                            <span class="d-block text-muted small">Étage {{ appt.floor }} ({{ appt.tantiemes }} tantièmes)</span>
+                        </td>
+                        <td>
+                            {% if appt.owner %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="stat-icon bg-teal-light rounded-circle" style="width: 36px; height: 36px; font-size: 1rem;">
+                                        <i class="bi bi-person-fill text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark d-block">{{ appt.owner.get_full_name|default:appt.owner.username }}</strong>
+                                        <small class="text-muted">Propriétaire enregistré</small>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="badge bg-secondary p-2"><i class="bi bi-house-dash me-1"></i>Vacant / Non attribué</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appt.owner %}
+                                <code class="bg-light text-primary px-2 py-1 rounded">{{ appt.owner.username }}</code>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appt.owner and appt.owner.cin %}
+                                <span class="badge bg-light text-dark border"><i class="bi bi-card-heading me-1"></i>{{ appt.owner.cin }}</span>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appt.owner %}
+                                <div class="small">
+                                    {% if appt.owner.phone %}
+                                        <div><i class="bi bi-telephone-fill text-success me-1"></i>{{ appt.owner.phone }}</div>
+                                    {% endif %}
+                                    {% if appt.owner.email %}
+                                        <div class="text-muted"><i class="bi bi-envelope-fill text-secondary me-1"></i>{{ appt.owner.email }}</div>
+                                    {% endif %}
+                                    {% if not appt.owner.phone and not appt.owner.email %}
+                                        <span class="text-muted">Non renseigné</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appt.opening_balance > 0 %}
+                                <span class="fw-bold text-success">+{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                            {% elif appt.opening_balance < 0 %}
+                                <span class="fw-bold text-danger">{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                            {% else %}
+                                <span class="fw-bold text-muted">0.00 MAD</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if appt.owner %}
+                                <div class="d-flex justify-content-end gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#editResidentModal{{ appt.owner.id }}">
+                                        <i class="bi bi-pencil-square me-1"></i> Modifier Fiche
+                                    </button>
+                                    <form action="{% url 'assign_resident_to_apartment' appt.id %}" method="post" class="d-inline" onsubmit="return confirm('Voulez-vous vraiment désattribuer cet appartement ?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action_type" value="remove">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Retirer le copropriétaire (Rendre vacant)">
+                                            <i class="bi bi-person-x"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Modal Édition Copropriétaire -->
+                                <div class="modal fade text-start" id="editResidentModal{{ appt.owner.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <form action="{% url 'update_resident_info' appt.owner.id %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title fw-bold">
+                                                        <i class="bi bi-person-gear me-2"></i>Modifier Fiche - {{ appt.owner.get_full_name|default:appt.owner.username }}
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="alert alert-info py-2 small mb-3">
+                                                        <i class="bi bi-building me-1"></i>{{ building.name }} - Appt {{ appt.number }} (Identifiant: <strong>{{ appt.owner.username }}</strong>)
+                                                    </div>
+
+                                                    <div class="row g-3">
+                                                        <div class="col-6">
+                                                            <label for="fn_{{ appt.owner.id }}" class="form-label font-weight-bold">Prénom :</label>
+                                                            <input type="text" name="first_name" id="fn_{{ appt.owner.id }}" class="form-control" value="{{ appt.owner.first_name }}" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label for="ln_{{ appt.owner.id }}" class="form-label font-weight-bold">Nom :</label>
+                                                            <input type="text" name="last_name" id="ln_{{ appt.owner.id }}" class="form-control" value="{{ appt.owner.last_name }}" required>
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label for="email_{{ appt.owner.id }}" class="form-label font-weight-bold">Adresse Email :</label>
+                                                            <input type="email" name="email" id="email_{{ appt.owner.id }}" class="form-control" value="{{ appt.owner.email }}">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label for="phone_{{ appt.owner.id }}" class="form-label font-weight-bold">N° Téléphone :</label>
+                                                            <input type="text" name="phone" id="phone_{{ appt.owner.id }}" class="form-control" value="{{ appt.owner.phone }}" placeholder="06XXXXXXXX">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label for="cin_{{ appt.owner.id }}" class="form-label font-weight-bold">N° Carte CIN :</label>
+                                                            <input type="text" name="cin" id="cin_{{ appt.owner.id }}" class="form-control" value="{{ appt.owner.cin }}" placeholder="AB123456">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                    <button type="submit" class="btn btn-primary fw-bold">
+                                                        <i class="bi bi-save me-1"></i>Enregistrer les modifications
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <!-- Bouton Ajouter Copropriétaire pour Logement Vacant -->
+                                <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#assignModal{{ appt.id }}">
+                                    <i class="bi bi-person-plus-fill me-1"></i> Ajouter Copropriétaire
+                                </button>
+
+                                <!-- Modal Attribuer / Créer Copropriétaire -->
+                                <div class="modal fade text-start" id="assignModal{{ appt.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-success text-white">
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="bi bi-person-plus-fill me-2"></i>Affecter un Copropriétaire - {{ building.name }} (Appt {{ appt.number }})
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Nav tabs -->
+                                                <ul class="nav nav-tabs nav-justified mb-3" id="assignTab{{ appt.id }}" role="tablist">
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link active fw-bold" id="existing-tab{{ appt.id }}" data-bs-toggle="tab" data-bs-target="#existing{{ appt.id }}" type="button" role="tab">
+                                                            <i class="bi bi-person-check me-1"></i> Sélectionner un Copropriétaire Existant
+                                                        </button>
+                                                    </li>
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link fw-bold" id="new-tab{{ appt.id }}" data-bs-toggle="tab" data-bs-target="#new{{ appt.id }}" type="button" role="tab">
+                                                            <i class="bi bi-person-add me-1"></i> Créer un Nouveau Copropriétaire
+                                                        </button>
+                                                    </li>
+                                                </ul>
+
+                                                <!-- Tab content -->
+                                                <div class="tab-content" id="assignTabContent{{ appt.id }}">
+                                                    <!-- Option 1: Existing Resident -->
+                                                    <div class="tab-pane fade show active p-2" id="existing{{ appt.id }}" role="tabpanel">
+                                                        <form action="{% url 'assign_resident_to_apartment' appt.id %}" method="post">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action_type" value="existing">
+                                                            <div class="mb-3">
+                                                                <label for="selectResident{{ appt.id }}" class="form-label font-weight-bold">Choisir parmi les résidents existants :</label>
+                                                                <select name="existing_resident_id" id="selectResident{{ appt.id }}" class="form-select" required>
+                                                                    <option value="">-- Sélectionner un copropriétaire --</option>
+                                                                    {% for r in all_residents %}
+                                                                        <option value="{{ r.id }}">{{ r.get_full_name|default:r.username }} (Identifiant: {{ r.username }} - CIN: {{ r.cin|default:'N/A' }})</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <button type="submit" class="btn btn-success fw-bold">
+                                                                    <i class="bi bi-link-45deg me-1"></i>Rattacher à cet Appartement
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Option 2: New Resident -->
+                                                    <div class="tab-pane fade p-2" id="new{{ appt.id }}" role="tabpanel">
+                                                        <form action="{% url 'assign_resident_to_apartment' appt.id %}" method="post">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action_type" value="new">
+                                                            
+                                                            <div class="row g-3">
+                                                                <div class="col-md-6">
+                                                                    <label for="u_user_{{ appt.id }}" class="form-label font-weight-bold">Nom d'utilisateur (Identifiant de connexion) * :</label>
+                                                                    <input type="text" name="username" id="u_user_{{ appt.id }}" class="form-control" placeholder="ex: habitant.benali" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_pass_{{ appt.id }}" class="form-label font-weight-bold">Mot de passe provisoire * :</label>
+                                                                    <input type="text" name="password" id="u_pass_{{ appt.id }}" class="form-control" value="password123" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_fn_{{ appt.id }}" class="form-label font-weight-bold">Prénom * :</label>
+                                                                    <input type="text" name="first_name" id="u_fn_{{ appt.id }}" class="form-control" placeholder="ex: Karim" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_ln_{{ appt.id }}" class="form-label font-weight-bold">Nom * :</label>
+                                                                    <input type="text" name="last_name" id="u_ln_{{ appt.id }}" class="form-control" placeholder="ex: Benali" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_email_{{ appt.id }}" class="form-label font-weight-bold">Adresse Email :</label>
+                                                                    <input type="email" name="email" id="u_email_{{ appt.id }}" class="form-control" placeholder="karim.benali@gmail.com">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_phone_{{ appt.id }}" class="form-label font-weight-bold">Téléphone :</label>
+                                                                    <input type="text" name="phone" id="u_phone_{{ appt.id }}" class="form-control" placeholder="0661223344">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="u_cin_{{ appt.id }}" class="form-label font-weight-bold">N° Carte CIN :</label>
+                                                                    <input type="text" name="cin" id="u_cin_{{ appt.id }}" class="form-control" placeholder="BK123456">
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="text-end mt-4">
+                                                                <button type="submit" class="btn btn-success fw-bold">
+                                                                    <i class="bi bi-person-check-fill me-1"></i>Créer et Rattacher le Copropriétaire
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-3 text-muted">Aucun appartement enregistré dans cet immeuble.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="card card-custom p-5 text-center text-muted">
+    <i class="bi bi-building-x fs-1 text-secondary mb-2"></i>
+    <h5>Aucun immeuble attribué</h5>
+</div>
+{% endfor %}
+{% endblock %}

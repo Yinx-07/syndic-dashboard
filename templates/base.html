@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SyndicMaroc - Gestion de Copropriété au Maroc{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --syndic-primary: #0f4c81;
+            --syndic-primary-dark: #0a355c;
+            --syndic-accent: #d97706;
+            --syndic-bg: #f8fafc;
+            --syndic-card-bg: #ffffff;
+            --syndic-text: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--syndic-bg);
+            color: var(--syndic-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar-syndic {
+            background: linear-gradient(135deg, #0a355c 0%, #0f4c81 100%);
+            box-shadow: 0 4px 15px rgba(15, 76, 129, 0.15);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-badge {
+            background-color: var(--syndic-accent);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: #ffffff;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .bg-teal-light { background-color: #e0f2fe; color: #0369a1; }
+        .bg-amber-light { background-color: #fef3c7; color: #b45309; }
+        .bg-emerald-light { background-color: #d1fae5; color: #047857; }
+        .bg-purple-light { background-color: #f3e8ff; color: #6b21a8; }
+
+        .card-custom {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .badge-role-manager {
+            background-color: #0f4c81;
+            color: white;
+        }
+
+        .badge-role-resident {
+            background-color: #059669;
+            color: white;
+        }
+
+        .mad-currency {
+            font-weight: 700;
+            color: #0f4c81;
+        }
+
+        footer {
+            margin-top: auto;
+            background: #0a355c;
+            color: #cbd5e1;
+        }
+
+        /* ==========================================
+           STRICT MOBILE RESPONSIVE & ANTI-OVERFLOW
+           ========================================== */
+        html, body {
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Prevent long badge or button text from breaking viewports */
+        .badge {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            max-width: 100%;
+        }
+
+        .table-responsive {
+            width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+            main.container-fluid {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                padding-top: 14px !important;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .brand-badge {
+                font-size: 0.6rem;
+                padding: 2px 6px;
+            }
+
+            .stat-card {
+                padding: 12px !important;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .card-body {
+                padding: 12px !important;
+            }
+
+            /* Touch-friendly buttons and controls */
+            .btn-sm {
+                padding: 0.35rem 0.65rem;
+                font-size: 0.8rem;
+            }
+
+            /* Force header badges & buttons to stack on mobile */
+            .mobile-stack {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+
+            .mobile-stack > * {
+                width: 100% !important;
+                text-align: center !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            h2 {
+                font-size: 1.25rem !important;
+            }
+
+            h3 {
+                font-size: 1.35rem !important;
+            }
+
+            h5 {
+                font-size: 1.05rem !important;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-syndic sticky-top py-2">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_dispatch' %}">
+                <i class="bi bi-building-fill-gear text-warningfs-3"></i>
+                <span>Syndic<span class="text-warning">Maroc</span></span>
+                <span class="brand-badge ms-1">PROTOTYPE</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                {% if user.is_authenticated %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    {% if user.is_manager or user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white active" href="{% url 'manager_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i> Tableau de bord Syndic
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50" href="{% url 'residents_list' %}">
+                            <i class="bi bi-people-fill me-1"></i> Copropriétaires
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white active" href="{% url 'resident_dashboard' %}">
+                            <i class="bi bi-house-door me-1"></i> Mon Espace Copropriétaire
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="bi bi-cash-stack text-success me-1"></i> Devise: <strong>MAD (DH)</strong>
+                    </span>
+
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                            {% if user.is_manager %}
+                                <span class="badge badge-role-manager rounded-pill ms-1">Syndic</span>
+                            {% else %}
+                                <span class="badge badge-role-resident rounded-pill ms-1">Résident</span>
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><h6 class="dropdown-header">Connecté en tant que:</h6></li>
+                            <li><span class="dropdown-item-text fw-bold">{{ user.username }}</span></li>
+                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2">
+                                        <i class="bi bi-box-arrow-right"></i> Se déconnecter
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                {% else %}
+                <div class="ms-auto">
+                    <a href="{% url 'login' %}" class="btn btn-warning rounded-pill px-4 fw-bold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Connexion
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="container-fluid px-4 py-4">
+        <!-- Toast / Alerts -->
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center small">
+        <div class="container">
+            <p class="mb-1"><strong>SyndicMaroc</strong> &copy; 2026 - Solution de Gestion de Copropriété au Maroc.</p>
+            <p class="mb-0 text-white-50">Interface conforme aux normes de syndic - Démonstration Locale Étape 1</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle & Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

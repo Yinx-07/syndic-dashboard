@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Connexion - SyndicMaroc{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="card card-custom shadow-lg border-0">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="stat-icon bg-teal-light mx-auto mb-3" style="width: 64px; height: 64px;">
+                        <i class="bi bi-shield-lock-fill text-primary fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">Espace de Connexion</h3>
+                    <p class="text-muted small">Plateforme de Gestion des Copropriétés au Maroc</p>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show small" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Nom d'utilisateur ou mot de passe incorrect.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}" id="loginForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label font-weight-bold">Nom d'utilisateur</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-label form-control" id="id_username" required autofocus placeholder="ex: syndic.alami">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label font-weight-bold">Mot de passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" name="password" class="form-control" id="id_password" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3" style="background-color: var(--syndic-primary);">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Se Connecter
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <!-- Interactive Demo Quick Login Panel -->
+                <div class="bg-light p-3 rounded-3 border">
+                    <h6 class="fw-bold mb-2 text-dark small text-uppercase tracking-wider">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Comptes de Démonstration (Clic rapide) :
+                    </h6>
+                    <p class="text-muted small mb-3">Cliquez sur un rôle ci-dessous pour remplir automatiquement le formulaire et tester l'isolation des données :</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center" onclick="fillLogin('syndic.alami', 'password123')">
+                            <span><i class="bi bi-building me-1"></i> <strong>Syndic 1:</strong> Mehdi Alami (Résidence Anfa, Casa)</span>
+                            <span class="badge bg-primary">Gestionnaire</span>
+                        </button>
+                        
+                        <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center" onclick="fillLogin('syndic.bennani', 'password123')">
+                            <span><i class="bi bi-building me-1"></i> <strong>Syndic 2:</strong> Sarah Bennani (Majorelle, MKE)</span>
+                            <span class="badge bg-primary">Gestionnaire</span>
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-success text-start d-flex justify-content-between align-items-center" onclick="fillLogin('habitant.idrissi', 'password123')">
+                            <span><i class="bi bi-house-door me-1"></i> <strong>Résident 1:</strong> Y. Idrissi (Appt 101, Anfa)</span>
+                            <span class="badge bg-success">Résident</span>
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-success text-start d-flex justify-content-between align-items-center" onclick="fillLogin('habitant.tazi', 'password123')">
+                            <span><i class="bi bi-house-door me-1"></i> <strong>Résident 2:</strong> F. Tazi (Appt 102, Anfa)</span>
+                            <span class="badge bg-success">Résident</span>
+                        </button>
+
+                        <button type="button" class="btn btn-sm btn-outline-dark text-start d-flex justify-content-between align-items-center" onclick="fillLogin('admin', 'admin123')">
+                            <span><i class="bi bi-gear-fill me-1"></i> <strong>Super-Administrateur</strong></span>
+                            <span class="badge bg-dark">Admin</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function fillLogin(username, password) {
+    document.getElementById('id_username').value = username;
+    document.getElementById('id_password').value = password;
+    document.getElementById('loginForm').submit();
+}
+</script>
+{% endblock %}
