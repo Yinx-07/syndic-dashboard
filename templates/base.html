@@ -3,124 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SyndicMaroc - Gestion de Copropriété au Maroc{% endblock %}</title>
+    <title>{% block title %}SyndicMaroc - Plateforme Moderne de Gestion de Copropriété{% endblock %}</title>
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --syndic-primary: #0f4c81;
-            --syndic-primary-dark: #0a355c;
-            --syndic-accent: #d97706;
-            --syndic-bg: #f8fafc;
-            --syndic-card-bg: #ffffff;
-            --syndic-text: #1e293b;
+            /* Brand & Palette Tokens */
+            --syn-brand: #0f766e;
+            --syn-brand-dark: #115e59;
+            --syn-brand-light: #ccfbf1;
+            --syn-navy: #0f172a;
+            --syn-navy-surface: #1e293b;
+            --syn-bg: #f8fafc;
+            --syn-card: #ffffff;
+            --syn-border: #e2e8f0;
+            --syn-text-main: #0f172a;
+            --syn-text-muted: #64748b;
+            
+            /* Status Tokens */
+            --syn-success: #059669;
+            --syn-success-light: #ecfdf5;
+            --syn-warning: #d97706;
+            --syn-warning-light: #fffbeb;
+            --syn-danger: #dc2626;
+            --syn-danger-light: #fef2f2;
+            --syn-info: #0284c7;
+            --syn-info-light: #f0f9ff;
+
+            /* Shadows */
+            --syn-shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 4px 14px -2px rgba(15, 23, 42, 0.05);
+            --syn-shadow-hover: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+            --syn-shadow-modal: 0 20px 35px -8px rgba(15, 23, 42, 0.2);
+            --syn-radius-card: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--syndic-bg);
-            color: var(--syndic-text);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--syn-bg);
+            color: var(--syn-text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Navbar & Header */
         .navbar-syndic {
-            background: linear-gradient(135deg, #0a355c 0%, #0f4c81 100%);
-            box-shadow: 0 4px 15px rgba(15, 76, 129, 0.15);
+            background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.25);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
         }
 
         .navbar-brand {
-            font-weight: 700;
-            font-size: 1.4rem;
-            letter-spacing: -0.5px;
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.03em;
+            color: #ffffff !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .brand-badge {
-            background-color: var(--syndic-accent);
-            color: #fff;
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .stat-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background: #ffffff;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.07);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
+        .brand-icon-box {
+            width: 38px;
+            height: 38px;
+            background: rgba(20, 184, 166, 0.15);
+            border: 1px solid rgba(20, 184, 166, 0.3);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            color: #2dd4bf;
+            font-size: 1.25rem;
         }
 
-        .bg-teal-light { background-color: #e0f2fe; color: #0369a1; }
-        .bg-amber-light { background-color: #fef3c7; color: #b45309; }
-        .bg-emerald-light { background-color: #d1fae5; color: #047857; }
-        .bg-purple-light { background-color: #f3e8ff; color: #6b21a8; }
-
-        .card-custom {
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-
-        .badge-role-manager {
-            background-color: #0f4c81;
-            color: white;
-        }
-
-        .badge-role-resident {
-            background-color: #059669;
-            color: white;
-        }
-
-        .mad-currency {
+        .brand-badge-country {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+            font-size: 0.68rem;
             font-weight: 700;
-            color: #0f4c81;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
-        footer {
-            margin-top: auto;
-            background: #0a355c;
-            color: #cbd5e1;
+        .nav-link-custom {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #cbd5e1 !important;
+            padding: 8px 14px !important;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* ==========================================
-           STRICT MOBILE RESPONSIVE & ANTI-OVERFLOW
-           ========================================== */
-        html, body {
-            max-width: 100vw !important;
-            overflow-x: hidden !important;
+        .nav-link-custom:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        /* Prevent long badge or button text from breaking viewports */
-        .badge {
+        .nav-link-custom.active {
+            color: #ffffff !important;
+            background: rgba(15, 118, 110, 0.5);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+        }
+
+        /* Modern Bento Cards & Panels */
+        .card-custom {
+            background: var(--syn-card);
+            border: 1px solid var(--syn-border);
+            border-radius: var(--syn-radius-card);
+            box-shadow: var(--syn-shadow-card);
+            transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card-custom-hover:hover {
+            box-shadow: var(--syn-shadow-hover);
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+
+        .stat-card-bento {
+            background: var(--syn-card);
+            border: 1px solid var(--syn-border);
+            border-radius: var(--syn-radius-card);
+            padding: 20px;
+            box-shadow: var(--syn-shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-card-bento:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--syn-shadow-hover);
+            border-color: #cbd5e1;
+        }
+
+        .stat-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card-bento:hover .stat-icon-wrapper {
+            transform: scale(1.08);
+        }
+
+        /* Icon Colors */
+        .icon-emerald { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .icon-teal    { background: #f0fdfa; color: #0d9488; border: 1px solid #99f6e4; }
+        .icon-sky     { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+        .icon-amber   { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .icon-rose    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        /* Badges */
+        .badge-syn {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             white-space: normal !important;
             word-wrap: break-word !important;
-            max-width: 100%;
+        }
+
+        .badge-syn-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .badge-syn-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .badge-syn-danger  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-syn-info    { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-syn-neutral { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Currency Format */
+        .mad-val {
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .mad-unit {
+            font-size: 0.65em;
+            font-weight: 600;
+            color: var(--syn-text-muted);
+            margin-left: 3px;
+        }
+
+        /* Buttons & Form Controls */
+        .btn-syn-primary {
+            background-color: var(--syn-brand);
+            border-color: var(--syn-brand);
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 8px 18px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(15, 118, 110, 0.2);
+            cursor: pointer;
+        }
+
+        .btn-syn-primary:hover {
+            background-color: var(--syn-brand-dark);
+            border-color: var(--syn-brand-dark);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+        }
+
+        .btn-syn-outline {
+            background-color: transparent;
+            border: 1px solid var(--syn-border);
+            color: var(--syn-text-main);
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-syn-outline:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: var(--syn-brand);
+        }
+
+        /* Tables */
+        .table-syn {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-syn th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--syn-border);
+        }
+
+        .table-syn td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.88rem;
+        }
+
+        .table-syn tbody tr:hover td {
+            background-color: rgba(240, 253, 250, 0.5);
+        }
+
+        .table-syn tbody tr:last-child td {
+            border-bottom: none;
         }
 
         .table-responsive {
@@ -129,71 +296,35 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        @media (max-width: 768px) {
-            main.container-fluid {
-                padding-left: 12px !important;
-                padding-right: 12px !important;
-                padding-top: 14px !important;
-            }
-
-            .navbar-brand {
-                font-size: 1.1rem;
-            }
-
-            .brand-badge {
-                font-size: 0.6rem;
-                padding: 2px 6px;
-            }
-
-            .stat-card {
-                padding: 12px !important;
-            }
-
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.1rem;
-            }
-
-            .card-body {
-                padding: 12px !important;
-            }
-
-            /* Touch-friendly buttons and controls */
-            .btn-sm {
-                padding: 0.35rem 0.65rem;
-                font-size: 0.8rem;
-            }
-
-            /* Force header badges & buttons to stack on mobile */
-            .mobile-stack {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                width: 100% !important;
-            }
-
-            .mobile-stack > * {
-                width: 100% !important;
-                text-align: center !important;
-            }
+        /* Footer */
+        footer {
+            margin-top: auto;
+            background: #0f172a;
+            color: #94a3b8;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        @media (max-width: 576px) {
-            h2 {
-                font-size: 1.25rem !important;
+        /* Responsive Mobile Styles */
+        @media (max-width: 768px) {
+            main.container-fluid {
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                padding-top: 16px !important;
             }
 
-            h3 {
-                font-size: 1.35rem !important;
+            .stat-card-bento {
+                padding: 16px !important;
             }
 
-            h5 {
-                font-size: 1.05rem !important;
+            .stat-icon-wrapper {
+                width: 42px !important;
+                height: 42px !important;
+                font-size: 1.15rem !important;
             }
 
-            .nav-tabs .nav-link {
-                padding: 6px 8px;
-                font-size: 0.8rem;
+            .btn-syn-primary, .btn-syn-outline {
+                font-size: 0.82rem;
+                padding: 7px 12px;
             }
         }
     </style>
@@ -203,65 +334,75 @@
 
     <!-- Header Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-syndic sticky-top py-2">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard_dispatch' %}">
-                <i class="bi bi-building-fill-gear text-warningfs-3"></i>
-                <span>Syndic<span class="text-warning">Maroc</span></span>
-                <span class="brand-badge ms-1">PROTOTYPE</span>
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand" href="{% url 'dashboard_dispatch' %}">
+                <div class="brand-icon-box">
+                    <i class="bi bi-buildings-fill"></i>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="lh-1">Syndic<span style="color: #2dd4bf;">Maroc</span></span>
+                    <span style="font-size: 0.65rem; color: #94a3b8; font-weight: 500; letter-spacing: 0.02em;">Gestion & Copropriété</span>
+                </div>
+                <span class="brand-badge-country ms-2 d-none d-sm-inline">
+                    <i class="bi bi-shield-check text-success me-1"></i>PROD
+                </span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0 shadow-none p-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-white"></i>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarMain">
                 {% if user.is_authenticated %}
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
                     {% if user.is_manager or user.is_superuser %}
                     <li class="nav-item">
-                        <a class="nav-link text-white active" href="{% url 'manager_dashboard' %}">
-                            <i class="bi bi-speedometer2 me-1"></i> Tableau de bord Syndic
+                        <a class="nav-link-custom {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}" href="{% url 'manager_dashboard' %}">
+                            <i class="bi bi-grid-1x2-fill"></i> Tableau de bord Syndic
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white-50" href="{% url 'residents_list' %}">
-                            <i class="bi bi-people-fill me-1"></i> Copropriétaires
+                        <a class="nav-link-custom {% if request.resolver_match.url_name == 'residents_list' %}active{% endif %}" href="{% url 'residents_list' %}">
+                            <i class="bi bi-people-fill"></i> Copropriétaires
                         </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link text-white active" href="{% url 'resident_dashboard' %}">
-                            <i class="bi bi-house-door me-1"></i> Mon Espace Copropriétaire
+                        <a class="nav-link-custom {% if request.resolver_match.url_name == 'resident_dashboard' %}active{% endif %}" href="{% url 'resident_dashboard' %}">
+                            <i class="bi bi-house-door-fill"></i> Mon Espace Résident
                         </a>
                     </li>
                     {% endif %}
                 </ul>
 
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
-                        <i class="bi bi-cash-stack text-success me-1"></i> Devise: <strong>MAD (DH)</strong>
-                    </span>
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2 mt-lg-0">
+                    <div class="d-none d-md-flex align-items-center px-3 py-1 rounded-pill" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.8rem; color: #e2e8f0;">
+                        <i class="bi bi-wallet2 text-success me-1"></i> Devise : <strong class="ms-1 text-white">MAD (DH)</strong>
+                    </div>
 
                     <div class="dropdown">
-                        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-5"></i>
-                            <span>{{ user.get_full_name|default:user.username }}</span>
+                        <button class="btn d-flex align-items-center gap-2 rounded-pill px-3 py-1" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: #0f766e; color: #ffffff; font-weight: 700; font-size: 0.8rem;">
+                                {{ user.username|make_list|first|upper }}
+                            </div>
+                            <span class="small fw-semibold">{{ user.get_full_name|default:user.username }}</span>
                             {% if user.is_manager %}
-                                <span class="badge badge-role-manager rounded-pill ms-1">Syndic</span>
+                                <span class="badge-syn badge-syn-success py-0 px-2" style="font-size: 0.65rem;">Syndic</span>
                             {% else %}
-                                <span class="badge badge-role-resident rounded-pill ms-1">Résident</span>
+                                <span class="badge-syn badge-syn-info py-0 px-2" style="font-size: 0.65rem;">Résident</span>
                             {% endif %}
+                            <i class="bi bi-chevron-down small text-white-50 ms-1"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><h6 class="dropdown-header">Connecté en tant que:</h6></li>
-                            <li><span class="dropdown-item-text fw-bold">{{ user.username }}</span></li>
-                            <li><span class="dropdown-item-text text-muted small">{{ user.email }}</span></li>
-                            <li><hr class="dropdown-divider"></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2" style="border-radius: 12px; min-width: 220px;">
+                            <li class="px-3 py-2 border-bottom">
+                                <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                                <div class="text-muted small">{{ user.email|default:"Sans email" }}</div>
+                            </li>
                             <li>
-                                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                <form action="{% url 'logout' %}" method="post" class="p-1">
                                     {% csrf_token %}
-                                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2">
-                                        <i class="bi bi-box-arrow-right"></i> Se déconnecter
+                                    <button type="submit" class="dropdown-item text-danger rounded-2 d-flex align-items-center gap-2 py-2">
+                                        <i class="bi bi-box-arrow-right"></i> Déconnexion
                                     </button>
                                 </form>
                             </li>
@@ -270,7 +411,7 @@
                 </div>
                 {% else %}
                 <div class="ms-auto">
-                    <a href="{% url 'login' %}" class="btn btn-warning rounded-pill px-4 fw-bold">
+                    <a href="{% url 'login' %}" class="btn btn-syn-primary px-4">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Connexion
                     </a>
                 </div>
@@ -280,14 +421,15 @@
     </nav>
 
     <!-- Main Content Container -->
-    <main class="container-fluid px-4 py-4">
+    <main class="container-fluid px-3 px-lg-4 py-4">
         <!-- Toast / Alerts -->
         {% if messages %}
             <div class="mb-4">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
-                        <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show card-custom border-0 shadow-sm p-3 d-flex align-items-center gap-3" role="alert">
+                        <i class="bi bi-info-circle-fill fs-5 text-{{ message.tags|default:'info' }} flex-shrink-0"></i>
+                        <div class="small fw-medium">{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             </div>
@@ -297,10 +439,18 @@
     </main>
 
     <!-- Footer -->
-    <footer class="py-3 text-center small">
+    <footer class="py-4 text-center">
         <div class="container">
-            <p class="mb-1"><strong>SyndicMaroc</strong> &copy; 2026 - Solution de Gestion de Copropriété au Maroc.</p>
-            <p class="mb-0 text-white-50">Interface conforme aux normes de syndic - Démonstration Locale Étape 1</p>
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 small">
+                <div class="text-white-50">
+                    <strong class="text-white">SyndicMaroc</strong> &copy; 2026 — Plateforme de gestion de copropriété certifiée.
+                </div>
+                <div class="d-flex align-items-center gap-3 text-white-50">
+                    <span><i class="bi bi-shield-lock-fill text-success me-1"></i>Données Isolées & Chiffrées</span>
+                    <span>&bull;</span>
+                    <span>Conforme Droit Marocain (Loi 18-00)</span>
+                </div>
+            </div>
         </div>
     </footer>
 

@@ -1,24 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}Accès Interdit (403) - SyndicMaroc{% endblock %}
+{% block title %}Accès Refusé (403) - SyndicMaroc{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center py-5">
-    <div class="col-md-8 col-lg-6 text-center">
-        <div class="card card-custom p-4 p-md-5 shadow-lg border-0">
-            <div class="stat-icon bg-amber-light mx-auto mb-3" style="width: 72px; height: 72px;">
-                <i class="bi bi-shield-slash-fill text-danger fs-1"></i>
+    <div class="col-12 col-md-8 col-lg-6 text-center">
+        <div class="card-custom p-4 p-md-5 shadow-lg">
+            <div class="stat-icon-wrapper icon-rose mx-auto mb-3" style="width: 72px; height: 72px; font-size: 2rem;">
+                <i class="bi bi-shield-x"></i>
             </div>
-            <h2 class="fw-bold text-dark mb-2">Accès Refusé (Erreur 403)</h2>
-            <p class="text-muted mb-4 fs-6">
+            <h3 class="fw-bold text-dark mb-2" style="font-size: 1.6rem; letter-spacing: -0.02em;">
+                Accès Refusé (Erreur 403)
+            </h3>
+            <p class="text-muted mb-4 small lh-base">
                 Vous n'avez pas les autorisations nécessaires pour accéder à cette ressource.
                 <br>
-                <small class="text-secondary">En vertu des règles de sécurité de <strong>SyndicMaroc</strong>, l'accès aux données des immeubles est strictement réservé au syndic désigné et chaque résident ne peut consulter que ses propres lots.</small>
+                <span class="text-secondary" style="font-size: 0.8rem;">
+                    Conformément aux règles d'isolation de données de <strong>SyndicMaroc</strong>, les informations financières et registres d'un immeuble sont strictement réservés au syndic mandaté ou aux copropriétaires rattachés à leurs propres lots.
+                </span>
             </p>
 
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{% url 'dashboard_dispatch' %}" class="btn btn-primary px-4 py-2 rounded-pill fw-bold">
-                    <i class="bi bi-house-door me-2"></i>Retourner à mon Espace
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'dashboard_dispatch' %}" class="btn-syn-primary d-inline-flex align-items-center gap-2 text-decoration-none">
+                    <i class="bi bi-house-door-fill"></i> Retourner à mon Espace
                 </a>
             </div>
         </div>

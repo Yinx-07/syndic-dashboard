@@ -1,24 +1,31 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ building.name }} - Détails Immeuble - SyndicMaroc{% endblock %}
+{% block title %}{{ building.name }} - Fiche Immeuble - SyndicMaroc{% endblock %}
 
 {% block content %}
+<!-- Page Header -->
 <div class="mb-4">
-    <a href="{% url 'manager_dashboard' %}" class="btn btn-outline-secondary btn-sm mb-3">
-        <i class="bi bi-arrow-left me-1"></i> Retour au Tableau de Bord
+    <a href="{% url 'manager_dashboard' %}" class="btn-syn-outline btn-sm d-inline-flex align-items-center gap-2 text-decoration-none mb-3">
+        <i class="bi bi-arrow-left"></i> Retour au Tableau de Bord
     </a>
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">
-                <i class="bi bi-building-fill text-primary me-2"></i>{{ building.name }}
-            </h2>
-            <p class="text-muted mb-0">
-                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ building.address }}, {{ building.city }}
-            </p>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon-wrapper icon-teal" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                <i class="bi bi-building"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-1 text-dark" style="font-size: 1.65rem; letter-spacing: -0.03em;">
+                    {{ building.name }}
+                </h2>
+                <p class="text-muted mb-0 small d-flex align-items-center gap-1">
+                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                    <span>{{ building.address }}, {{ building.city }}</span>
+                </p>
+            </div>
         </div>
         <div>
-            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">
-                Syndic désigné : {{ building.manager.get_full_name|default:building.manager.username }}
+            <span class="badge-syn badge-syn-success py-2 px-3 shadow-sm">
+                <i class="bi bi-person-badge"></i> Syndic : {{ building.manager.get_full_name|default:building.manager.username }}
             </span>
         </div>
     </div>
@@ -26,20 +33,26 @@
 
 <div class="row g-4">
     <!-- Apartment Roster -->
-    <div class="col-lg-8">
-        <div class="card card-custom">
-            <div class="card-header bg-white py-3">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="bi bi-door-closed text-primary me-2"></i>Registre des Appartements et Soldes d'Ouverture
-                </h5>
+    <div class="col-12 col-lg-8">
+        <div class="card-custom overflow-hidden">
+            <div class="p-3 p-md-4 border-bottom bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0 fs-6 d-flex align-items-center gap-2">
+                        <i class="bi bi-door-closed-fill text-primary"></i> Registre des Lots & Soldes d'Ouverture
+                    </h5>
+                    <span class="text-muted small">Situation locative et financière par unité</span>
+                </div>
+                <span class="badge-syn badge-syn-info">
+                    {{ apartments.count }} Appartement(s)
+                </span>
             </div>
-            <div class="card-body p-0">
+            <div class="p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light small text-uppercase">
+                    <table class="table-syn">
+                        <thead>
                             <tr>
                                 <th>Appartement</th>
-                                <th>Étage</th>
+                                <th>Étage & Tantièmes</th>
                                 <th>Copropriétaire</th>
                                 <th>Cotisation Sept. 2026</th>
                                 <th class="text-end">Solde d'Ouverture (MAD)</th>
@@ -48,75 +61,100 @@
                         <tbody>
                             {% for appt in apartments %}
                             <tr>
-                                <td><strong class="text-primary">Appt {{ appt.number }}</strong></td>
-                                <td>Étage {{ appt.floor }}</td>
+                                <td>
+                                    <span class="badge-syn badge-syn-neutral fw-bold text-dark">
+                                        Appt {{ appt.number }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-dark small fw-semibold">Étage {{ appt.floor }}</span>
+                                    <span class="badge-syn badge-syn-neutral py-0 px-2 ms-1" style="font-size: 0.7rem;">
+                                        {{ appt.tantiemes }}/1000
+                                    </span>
+                                </td>
                                 <td>
                                     {% if appt.owner %}
-                                        <div class="fw-bold text-dark">{{ appt.owner.get_full_name|default:appt.owner.username }}</div>
-                                        <small class="text-muted">{{ appt.owner.phone|default:'Tél non renseigné' }}</small>
+                                        <div class="fw-semibold text-dark small">{{ appt.owner.get_full_name|default:appt.owner.username }}</div>
+                                        <small class="text-muted d-flex align-items-center gap-1">
+                                            <i class="bi bi-telephone text-success" style="font-size: 0.7rem;"></i>
+                                            {{ appt.owner.phone|default:'Tél non renseigné' }}
+                                        </small>
                                     {% else %}
-                                        <span class="badge bg-secondary">Vacant / Sans occupant</span>
+                                        <span class="badge-syn badge-syn-neutral text-muted py-0 px-2">Vacant</span>
                                     {% endif %}
                                 </td>
-                                <td><span class="badge bg-light text-dark border">{{ appt.tantiemes }} / 1000</span></td>
                                 <td>
                                     {% with appt.monthly_payments.first as payment %}
                                         {% if payment %}
                                             {% if payment.status == 'PAID' %}
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Payé</span>
-                                                    <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" title="Imprimer le reçu de paiement">
+                                                    <span class="badge-syn badge-syn-success">
+                                                        <i class="bi bi-check-circle-fill"></i> Payé
+                                                    </span>
+                                                    <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2 fw-semibold" title="Imprimer le reçu">
                                                         <i class="bi bi-printer-fill me-1"></i>Reçu
                                                     </a>
                                                 </div>
                                             {% elif payment.status == 'PARTIAL' %}
-                                                <span class="badge bg-warning text-dark px-2 py-1">Partiel</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge-syn badge-syn-warning">
+                                                        <i class="bi bi-clock-history"></i> Partiel
+                                                    </span>
+                                                    <a href="{% url 'print_receipt' payment.id %}" target="_blank" class="btn btn-sm btn-outline-warning text-dark py-0 px-2 fw-semibold" title="Imprimer reçu acompte">
+                                                        <i class="bi bi-printer-fill me-1"></i>Acompte
+                                                    </a>
+                                                </div>
                                             {% else %}
-                                                <span class="badge bg-danger px-2 py-1">Non Payé</span>
+                                                <span class="badge-syn badge-syn-danger">
+                                                    <i class="bi bi-x-circle-fill"></i> Non Payé
+                                                </span>
                                             {% endif %}
                                         {% else %}
-                                            <span class="badge bg-secondary">-</span>
+                                            <span class="text-muted small">—</span>
                                         {% endif %}
                                     {% endwith %}
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex align-items-center justify-content-end gap-2">
                                         {% if appt.opening_balance > 0 %}
-                                            <span class="fw-bold text-success">+{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                                            <span class="fw-bold text-success mad-val small">+{{ appt.opening_balance|floatformat:2 }} <small class="text-muted">MAD</small></span>
                                         {% elif appt.opening_balance < 0 %}
-                                            <span class="fw-bold text-danger">{{ appt.opening_balance|floatformat:2 }} MAD</span>
+                                            <span class="fw-bold text-danger mad-val small">{{ appt.opening_balance|floatformat:2 }} <small class="text-muted">MAD</small></span>
                                         {% else %}
-                                            <span class="fw-bold text-muted">0.00 MAD</span>
+                                            <span class="text-muted mad-val small">0.00 <small>MAD</small></span>
                                         {% endif %}
-                                        <button type="button" class="btn btn-sm btn-light border text-primary py-0 px-2 rounded" data-bs-toggle="modal" data-bs-target="#editBalanceModalDetail{{ appt.id }}" title="Modifier le solde d'ouverture">
-                                            <i class="bi bi-pencil-fill small"></i> Edit
+                                        <button type="button" class="btn btn-sm btn-light border py-0 px-2 rounded-2" data-bs-toggle="modal" data-bs-target="#editBalanceModalDetail{{ appt.id }}" title="Modifier solde">
+                                            <i class="bi bi-pencil-fill text-muted" style="font-size: 0.75rem;"></i>
                                         </button>
                                     </div>
 
                                     <!-- Modal Modification Solde -->
                                     <div class="modal fade" id="editBalanceModalDetail{{ appt.id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content text-start">
+                                            <div class="modal-content card-custom border-0 shadow-lg text-start">
                                                 <form action="{% url 'update_opening_balance' appt.id %}" method="post">
                                                     {% csrf_token %}
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title fw-bold">Modifier Solde d'Ouverture - Appt {{ appt.number }}</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <div class="modal-header border-bottom py-3 px-4">
+                                                        <h5 class="modal-title fw-bold text-dark fs-6 d-flex align-items-center gap-2">
+                                                            <i class="bi bi-wallet2 text-primary"></i> Modifier Solde — Appt {{ appt.number }}
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                                                     </div>
-                                                    <div class="modal-body">
-                                                        <p class="small text-muted mb-3">Saisissez le nouveau solde financier d'ouverture (report à nouveau) en <strong>Dirhams Marocains (MAD)</strong>.</p>
+                                                    <div class="modal-body p-4">
+                                                        <p class="small text-muted mb-3">
+                                                            Ajustez le solde financier d'ouverture (report à nouveau) pour ce copropriétaire. Indiquez une valeur positive (+) en cas d'avance ou négative (-) en cas d'arriéré.
+                                                        </p>
                                                         <div class="mb-3">
-                                                            <label for="balanceDetailInput{{ appt.id }}" class="form-label font-weight-bold">Solde d'Ouverture (MAD) :</label>
+                                                            <label for="balanceDetailInput{{ appt.id }}" class="form-label fw-semibold small text-dark">Solde d'Ouverture (MAD) :</label>
                                                             <div class="input-group">
-                                                                <input type="number" step="0.01" name="opening_balance" id="balanceDetailInput{{ appt.id }}" class="form-control" value="{{ appt.opening_balance }}" required>
-                                                                <span class="input-group-text">MAD</span>
+                                                                <input type="number" step="0.01" name="opening_balance" id="balanceDetailInput{{ appt.id }}" class="form-control rounded-start-2" value="{{ appt.opening_balance }}" required>
+                                                                <span class="input-group-text fw-bold text-muted rounded-end-2">MAD</span>
                                                             </div>
-                                                            <small class="text-muted">Mettre une valeur positive (+) pour un crédit ou négative (-) pour une dette.</small>
                                                         </div>
                                                     </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                        <button type="submit" class="btn btn-primary fw-bold">Enregistrer la modification</button>
+                                                    <div class="modal-footer border-top py-2 px-4 bg-light">
+                                                        <button type="button" class="btn-syn-outline" data-bs-dismiss="modal">Annuler</button>
+                                                        <button type="submit" class="btn-syn-primary">Enregistrer Modification</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -126,7 +164,7 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">Aucun appartement enregistré.</td>
+                                <td colspan="5" class="text-center py-4 text-muted small">Aucun appartement enregistré pour cet immeuble.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -137,33 +175,36 @@
     </div>
 
     <!-- Building Summary & Quick Stats -->
-    <div class="col-lg-4">
-        <div class="card card-custom mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="bi bi-info-circle text-info me-2"></i>Fiche Signalétique Immeuble
-                </h5>
+    <div class="col-12 col-lg-4">
+        <div class="card-custom p-3 p-md-4 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="stat-icon-wrapper icon-sky" style="width: 36px; height: 36px; font-size: 1.1rem;">
+                    <i class="bi bi-info-circle-fill"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-0 fs-6">Fiche Signalétique</h5>
+                    <span class="text-muted small">Caractéristiques de l'immeuble</span>
+                </div>
             </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between px-0">
-                        <span class="text-muted">Nombre total d'unités :</span>
-                        <strong class="text-dark">{{ building.total_units }}</strong>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between px-0">
-                        <span class="text-muted">Unités occupées :</span>
-                        <strong class="text-dark">{{ apartments.count }}</strong>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between px-0">
-                        <span class="text-muted">Ville :</span>
-                        <strong class="text-dark">{{ building.city }}</strong>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between px-0">
-                        <span class="text-muted">Date d'enregistrement :</span>
-                        <span class="text-dark">{{ building.created_at|date:"d/m/Y" }}</span>
-                    </li>
-                </ul>
-            </div>
+            
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                    <span class="text-muted">Nombre total d'unités :</span>
+                    <strong class="text-dark">{{ building.total_units }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                    <span class="text-muted">Unités occupées :</span>
+                    <strong class="text-dark">{{ apartments.count }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom">
+                    <span class="text-muted">Ville :</span>
+                    <strong class="text-dark">{{ building.city }}</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                    <span class="text-muted">Date d'enregistrement :</span>
+                    <span class="text-dark">{{ building.created_at|date:"d/m/Y" }}</span>
+                </li>
+            </ul>
         </div>
     </div>
 </div>

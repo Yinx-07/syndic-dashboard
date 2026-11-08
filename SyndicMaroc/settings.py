@@ -18,16 +18,17 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 't')
 
-# Hôtes autorisés : valeurs de DJANGO_ALLOWED_HOSTS (séparées par des virgules,
-# espaces ignorés) + domaine Render automatique + local.
-ALLOWED_HOSTS = [
-    h.strip()
-    for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
-    if h.strip() and h.strip() != '*'
-]
-for host in ('syndic-dashboard.onrender.com', 'localhost', '127.0.0.1'):
-    if host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(host)
+# Hôtes autorisés : supporte tout sous-domaine Render (.onrender.com),
+# ainsi que localhost, 127.0.0.1 et les valeurs personnalisées dans DJANGO_ALLOWED_HOSTS.
+env_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '*')
+if env_hosts == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [h.strip() for h in env_hosts.split(',') if h.strip()]
+
+for default_host in ('.onrender.com', 'localhost', '127.0.0.1'):
+    if default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
 
 RENDER_HOST = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
@@ -35,8 +36,15 @@ if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
 
 # Nécessaire pour les formulaires / login en HTTPS
 CSRF_TRUSTED_ORIGINS = [
-    f'https://{h}' for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1')
+    'https://*.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
+for h in ALLOWED_HOSTS:
+    if h not in ('*', '.onrender.com', 'localhost', '127.0.0.1') and not h.startswith('.'):
+        origin = f'https://{h}'
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
 
 
 # ==========================================
